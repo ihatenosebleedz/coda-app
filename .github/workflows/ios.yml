@@ -1,0 +1,61 @@
+name: build-ios
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build unsigned IPA
+    # macos-26 ships Xcode 26.x, which has the iOS 26 SDK that Liquid Glass needs.
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app
+          xcodebuild -version
+
+      - name: Show toolchain
+        run: |
+          swift --version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Type-check app against iOS SDK
+        # Catches API misuse quickly, before spending time on a full link.
+        run: ./scripts/typecheck-ios.sh
+
+      - name: Run NaviCore test suite
+        # The core package is platform-independent, so it builds fine here and
+        # proves the app is linking logic that still passes its own tests.
+        run: swift test --filter NaviCoreTests
+
+      - name: Build app and package IPA
+        run: ./scripts/build-ios.sh
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Navi-unsigned-ipa
+          path: build-ios/Navi.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Bundle structure check
+        run: |
+          unzip -l build-ios/Navi.ipa
+          # An .ipa is a zip whose single top-level directory is Payload/.
+          unzip -l build-ios/Navi.ipa | grep -q 'Payload/Navi.app/Navi' \
+            || { echo "::error::IPA is missing Payload/Navi.app/Navi"; exit 1; }
+          unzip -p build-ios/Navi.ipa 'Payload/Navi.app/Info.plist' > /tmp/Info.plist
+          plutil -lint /tmp/Info.plist
+          plutil -extract CFBundleIdentifier raw /tmp/Info.plist
+          plutil -extract MinimumOSVersion raw /tmp/Info.plist

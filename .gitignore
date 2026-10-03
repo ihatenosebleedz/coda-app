@@ -1,0 +1,9 @@
+.build/
+.swiftpm/
+DerivedData/
+dist/
+build-ios/
+*.ipa
+*.dSYM.zip
+*.xcuserdatad
+.DS_Store

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Runs swift with the Void compatibility flags applied.
+DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SWIFT_LIBS="$HOME/swift-tc/libsys/usr/lib/x86_64-linux-gnu"
+
+# -L is needed as well as -rpath-link: linking an executable against
+# libFoundationNetworking resolves the versioned libcurl symbols at link time,
+# while shared-library links are satisfied lazily.
+exec "$DIR/swiftenv.sh" swift "$@" \
+    -Xlinker -L -Xlinker "$SWIFT_LIBS" \
+    -Xlinker -rpath-link -Xlinker "$SWIFT_LIBS"
