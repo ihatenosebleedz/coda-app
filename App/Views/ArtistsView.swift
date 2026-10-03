@@ -35,7 +35,7 @@ struct SongRow: View {
 
             Spacer(minLength: 4)
 
-            if (song.isFavourite ?? false) {
+            if song.isFavourite {
                 Image(systemName: "star.fill")
                     .font(.caption2)
                     .foregroundStyle(.yellow.opacity(0.8))

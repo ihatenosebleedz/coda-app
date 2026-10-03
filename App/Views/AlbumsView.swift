@@ -126,7 +126,7 @@ struct AlbumsView: View {
 
         Button {
             guard let client = appState.client else { return }
-            Task { _ = try? await client.setFavourite(id: album.id, favourite: !(album.starred != nil)) }
+            Task { _ = try? await client.setFavourite(albumID: album.id, favourite: album.starred == nil) }
         } label: {
             Label(
                 album.starred != nil ? "Remove from Favourites" : "Add to Favourites",

@@ -156,7 +156,7 @@ struct AlbumDetailView: View {
                     guard let client = appState.client else { return }
                     let shouldStar = detail.album.starred == nil
                     Task {
-                        try? await client.setFavourite(id: detail.album.id, favourite: shouldStar)
+                        try? await client.setFavourite(albumID: detail.album.id, favourite: shouldStar)
                         await load()
                     }
                 } label: {
@@ -192,11 +192,11 @@ struct AlbumDetailView: View {
             }
             Button {
                 guard let client = appState.client else { return }
-                Task { try? await client.setFavourite(id: song.id, favourite: !(song.isFavourite ?? false)) }
+                Task { try? await client.setFavourite(songID: song.id, favourite: !song.isFavourite) }
             } label: {
                 Label(
-                    (song.isFavourite ?? false) ? "Remove from Favourites" : "Add to Favourites",
-                    systemImage: (song.isFavourite ?? false) ? "star.slash" : "star"
+                    song.isFavourite ? "Remove from Favourites" : "Add to Favourites",
+                    systemImage: song.isFavourite ? "star.slash" : "star"
                 )
             }
         }

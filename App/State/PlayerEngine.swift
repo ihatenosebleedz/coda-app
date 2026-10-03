@@ -202,6 +202,9 @@ deinit {
     func removeQueueEntries(at offsets: IndexSet) {
         let removingCurrent = offsets.contains(queue.positionInQueue ?? -1)
         let removedCurrentSong = queue.currentSong
+        // Capture before the cursor moves; the replacement still needs to know
+        // whether it should start playing or stay paused.
+        let wasPlaying = isPlaying
 
         queue.removeEntries(at: offsets)
 
@@ -365,7 +368,7 @@ deinit {
         let wasPlaying = isPlaying
 
         player.replaceCurrentItem(with: AVPlayerItem(url: url))
-        player.seek(to: CMTime(seconds: resumeAt, preferredTimescale: 600))
+        await player.seek(to: CMTime(seconds: resumeAt, preferredTimescale: 600))
         if wasPlaying { player.play() }
     }
 
@@ -449,10 +452,10 @@ deinit {
 
     func toggleFavourite() {
         guard let client, let song = queue.currentSong else { return }
-        let target = !(song.isFavourite ?? false)
+        let target = !song.isFavourite
         Task {
             do {
-                try await client.setFavourite(id: song.id, favourite: target)
+                try await client.setFavourite(songID: song.id, favourite: target)
             } catch {
                 errorMessage = error.localizedDescription
             }
@@ -501,7 +504,7 @@ deinit {
             self?.skipBackward(seconds: 15)
             return .success
         }
-        center.changeRepeatModeCommand.supportedRepeatModes = [.off, .all, .one]
+        center.changeRepeatModeCommand.isEnabled = true
         center.changeRepeatModeCommand.addTarget { [weak self] event in
             guard let repeatEvent = event as? MPChangeRepeatModeCommandEvent else {
                 return .commandFailed
@@ -513,7 +516,7 @@ deinit {
             }
             return .success
         }
-        center.changeShuffleModeCommand.supportedShuffleModes = [.off, .items]
+        center.changeShuffleModeCommand.isEnabled = true
         center.changeShuffleModeCommand.addTarget { [weak self] event in
             guard let shuffleEvent = event as? MPChangeShuffleModeCommandEvent else {
                 return .commandFailed
