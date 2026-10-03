@@ -42,7 +42,10 @@ public enum AlbumListType: String, Sendable, Hashable, CaseIterable, Identifiabl
 
     var wireValue: String { legacyWireValue ?? rawValue }
 
-    var requiresYearRange: Bool { self == .byYear }
+    /// Only `requiresYearRange` is part of the public API: callers that build
+    /// the query themselves have to honour it, whereas `wireValue`,
+    /// `legacyWireValue` and `method` are request-shaping internals.
+    public var requiresYearRange: Bool { self == .byYear }
 }
 
 public struct ServerInfo: Sendable, Hashable {
