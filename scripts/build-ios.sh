@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds Navi.app and Navi.ipa for arm64 iOS without an .xcodeproj.
+# Builds Coda.app and Coda.ipa for arm64 iOS without an .xcodeproj.
 #
 # NaviCore is a platform-independent Swift package with no UI, so instead of
 # hand-maintaining a pbxproj we drive swiftc + actool directly. This keeps the
@@ -17,8 +17,8 @@ set -eu
 REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUTPUT_DIR=${1:-$REPO_ROOT/build-ios}
 
-APP_NAME=Navi
-BUNDLE_ID=io.github.ihatenosebleedz.navi
+APP_NAME=Coda
+BUNDLE_ID=io.github.ihatenosebleedz.coda
 DEPLOYMENT_TARGET=17.0
 SDK_NAME=iphoneos
 

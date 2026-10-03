@@ -46,7 +46,7 @@ xcrun swiftc \
 	-target "arm64-apple-ios$DEPLOYMENT_TARGET" \
 	-sdk "$SDK_PATH" \
 	-parse-as-library \
-	-module-name Navi \
+	-module-name Coda \
 	-I "$OUTPUT_DIR/modules" \
 	$APP_SOURCES
 

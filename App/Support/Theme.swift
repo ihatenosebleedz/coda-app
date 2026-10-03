@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Colour palette and the Liquid Glass compatibility layer.
 ///
-/// `glassEffect` only exists on iOS 26+. Navi deploys back to iOS 17, so every
+/// `glassEffect` only exists on iOS 26+. Coda deploys back to iOS 17, so every
 /// glass surface in the app goes through `GlassSurface` (or `.naviGlass()`)
 /// instead of calling Apple's API directly. That keeps all availability checks
 /// in this one file: on iOS 26 the real Liquid Glass effect is used, and on

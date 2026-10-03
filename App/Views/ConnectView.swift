@@ -40,7 +40,7 @@ struct ConnectView: View {
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(Color.naviAccent)
 
-            Text("Navi")
+            Text("Coda")
                 .font(.system(size: 40, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
 

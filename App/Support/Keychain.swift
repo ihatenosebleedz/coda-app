@@ -6,7 +6,7 @@ import Security
 /// The server password never goes into UserDefaults: it is stored as a
 /// generic-password item scoped to this app and removed on logout.
 enum Keychain {
-    private static let service = "io.github.ihatenosebleedz.navi.credentials"
+    private static let service = "io.github.ihatenosebleedz.coda.credentials"
 
     enum KeychainError: LocalizedError {
         case unexpectedStatus(OSStatus)

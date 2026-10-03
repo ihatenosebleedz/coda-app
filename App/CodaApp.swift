@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct NaviApp: App {
+struct CodaApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var engine = PlayerEngine()
 

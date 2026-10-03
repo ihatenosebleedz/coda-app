@@ -5,17 +5,17 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>Navi</string>
+	<string>Coda</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>io.github.ihatenosebleedz.navi</string>
+	<string>io.github.ihatenosebleedz.coda</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Navi</string>
+	<string>Coda</string>
 	<key>CFBundleDisplayName</key>
-	<string>Navi</string>
+	<string>Coda</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -62,7 +62,7 @@
 		<true/>
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Navi connects to your Navidrome server to browse and play your music.</string>
+	<string>Coda connects to your Navidrome server to browse and play your music.</string>
 	<key>ITunesSoftware</key>
 	<true/>
 </dict>

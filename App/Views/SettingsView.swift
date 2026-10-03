@@ -35,7 +35,7 @@ struct SettingsView: View {
             } header: {
                 Text("Scrobbling")
             } footer: {
-                Text("Navi sends a play scrobble once you pass the halfway point of a track, and sends 'now playing' as soon as playback starts.")
+                Text("Coda sends a play scrobble once you pass the halfway point of a track, and sends 'now playing' as soon as playback starts.")
             }
 
             Section("Server") {
@@ -79,7 +79,7 @@ struct SettingsView: View {
 
             Section {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Navi 0.1.0")
+                    Text("Coda 0.1.0")
                         .font(.footnote.weight(.semibold))
                     Text("A native Navidrome client. Built with SwiftUI.")
                         .font(.caption2)
