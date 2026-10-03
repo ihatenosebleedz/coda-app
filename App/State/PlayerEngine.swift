@@ -26,7 +26,11 @@ final class PlayerEngine: NSObject, ObservableObject {
     @Published private(set) var isLoadingLyrics = false
 
     private let player = AVPlayer()
-    private weak var client: SubsonicClient?
+
+    /// Strong, not weak: `SubsonicClient` is a struct, and `weak` only applies
+    /// to class types. There is no retain cycle because the client never holds
+    /// a reference back to the engine.
+    private var client: SubsonicClient?
 
     private var timeObserver: Any?
     private var itemEndObserver: NSObjectProtocol?
@@ -94,14 +98,18 @@ deinit {
         let interval = CMTime(seconds: 0.25, preferredTimescale: 600)
         timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             guard let self else { return }
-            let seconds = time.seconds
-            if seconds.isFinite, seconds >= 0 {
-                self.elapsed = seconds
-                self.updateNowPlayingElapsed()
+            // The observer is delivered on the queue above, which is main, but
+            // the closure is not actor-annotated so the hop has to be explicit.
+            MainActor.assumeIsolated {
+                let seconds = time.seconds
+                if seconds.isFinite, seconds >= 0 {
+                    self.elapsed = seconds
+                    self.updateNowPlayingElapsed()
+                }
+                // The observer is not view-driven, so the scrobble check has to
+                // run here or plays would never be submitted.
+                self.evaluateScrobbleThreshold()
             }
-            // The observer is not view-driven, so the scrobble check has to be
-            // driven from here or plays would never be submitted.
-            self.evaluateScrobbleThreshold()
         }
     }
 
@@ -134,10 +142,14 @@ deinit {
             }
         ]
 
+        // AVPlayer has no `isPlaying`; `timeControlStatus` is the
+        // KVO-observable equivalent and also covers stalls and interruptions.
         bufferObservations = [
-            player.observe(\.isPlaying, options: [.new]) { [weak self] player, _ in
+            player.observe(\.timeControlStatus, options: [.new]) { [weak self] player, _ in
                 MainActor.assumeIsolated {
-                    self?.isPlaying = player.isPlaying
+                    guard let self else { return }
+                    self.isPlaying = player.timeControlStatus == .playing
+                    self.isBuffering = player.timeControlStatus == .waitingToPlayAtSpecifiedRate
                 }
             }
         ]
