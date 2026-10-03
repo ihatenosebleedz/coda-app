@@ -10,6 +10,12 @@ concurrency:
   group: build-ios-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  # Used only to publish compiler diagnostics to a single tracking issue, so
+  # build failures are readable without admin access to the workflow logs.
+  issues: write
+
 jobs:
   build:
     name: Build unsigned IPA
@@ -29,9 +35,54 @@ jobs:
           swift --version
           xcrun --sdk iphoneos --show-sdk-version
 
+      # This step always succeeds so the log always exists; the gate below turns
+      # a failed type-check into a red build.
       - name: Type-check app against iOS SDK
-        # Catches API misuse quickly, before spending time on a full link.
-        run: ./scripts/typecheck-ios.sh
+        run: |
+          set +e
+          mkdir -p ci
+          ./scripts/typecheck-ios.sh > ci/typecheck.log 2>&1
+          echo "exit=$?" >> ci/typecheck.log
+          cat ci/typecheck.log
+
+      - name: Publish diagnostics
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          log=ci/typecheck.log
+          if [ ! -f "$log" ]; then
+            echo "No diagnostics file produced."
+            exit 0
+          fi
+          if ! grep -qE '^exit=[1-9]' "$log"; then
+            echo "Type-check passed, nothing to publish."
+            exit 0
+          fi
+
+          # Keep one sticky issue instead of filing a new one per push.
+          title="CI diagnostics"
+          number=$(gh issue list --state open --limit 100 --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+
+          # GitHub caps issue bodies at 65536 characters.
+          head -c 60000 "$log" > ci/diagnostics-body.md
+
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file ci/diagnostics-body.md >/dev/null
+            echo "Updated issue #$number"
+          else
+            gh issue create --title "$title" --body-file ci/diagnostics-body.md >/dev/null
+            echo "Created tracking issue"
+          fi
+
+      - name: Gate on type-check
+        run: |
+          grep -qE '^exit=0' ci/typecheck.log || {
+            echo "::error::Type-check failed; see the CI diagnostics issue."
+            exit 1
+          }
 
       - name: Run NaviCore test suite
         # The core package is platform-independent, so it builds fine here and

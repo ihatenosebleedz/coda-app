@@ -7,3 +7,4 @@ build-ios/
 *.dSYM.zip
 *.xcuserdatad
 .DS_Store
+ci/
