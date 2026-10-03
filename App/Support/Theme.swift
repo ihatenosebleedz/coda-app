@@ -78,8 +78,8 @@ struct NaviBackground: View {
 /// Note the API shapes here: `Glass.tint(_:)` takes a non-optional `Color`,
 /// `interactive()` takes no arguments, and `.glassEffect(_:in:)` has a default
 /// `isEnabled` parameter we do not need to pass.
-struct GlassSurface<Content: View>: View {
-    var shape: Shape = .rect(cornerRadius: 22)
+struct GlassSurface<Content: View, S: Shape>: View {
+    var shape: S
     var tint: Color?
     var interactive: Bool = true
     @ViewBuilder var content: Content
@@ -88,25 +88,20 @@ struct GlassSurface<Content: View>: View {
         if #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
         } else {
-            // `shape` is an existential, so the fill/stroke styles must be
-            // spelled out as AnyShapeStyle for the generic parameters to
-            // resolve. `strokeBorder` is InsettableShape-only, so use `stroke`.
-            let material = shape.fill(AnyShapeStyle(.ultraThinMaterial))
-            let sheen = shape.fill(
-                AnyShapeStyle(
-                    LinearGradient(
-                        colors: [Color.white.opacity(0.10), Color.white.opacity(0.03)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+            // S is a concrete Shape, so fill/stroke resolve to real Views and
+            // their generic style parameters infer correctly.
+            content
+                .background(shape.fill(AnyShapeStyle(.ultraThinMaterial)))
+                .background(
+                    shape.fill(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.10), Color.white.opacity(0.03)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
                 )
-            )
-            let border = shape.stroke(Color.white.opacity(0.14), lineWidth: 0.8)
-
-            return content
-                .background(material)
-                .background(sheen)
-                .overlay(border)
+                .overlay(shape.stroke(Color.white.opacity(0.14), lineWidth: 0.8))
         }
     }
 
@@ -121,8 +116,8 @@ struct GlassSurface<Content: View>: View {
 
 extension View {
     /// Convenience wrapper so call sites read as `.naviGlass(.rect(cornerRadius: 16))`.
-    func naviGlass(
-        in shape: Shape = .rect(cornerRadius: 22),
+    func naviGlass<S: Shape>(
+        in shape: S,
         tint: Color? = nil,
         interactive: Bool = true
     ) -> some View {
