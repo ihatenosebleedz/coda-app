@@ -62,9 +62,16 @@ public struct ServerInfo: Sendable, Hashable {
     }
 }
 
-public struct ArtistIndex: Sendable, Hashable {
+public struct ArtistIndex: Sendable, Hashable, Identifiable {
     public var letter: String
     public var artists: [Artist]
+
+    public var id: String { letter }
+
+    public init(letter: String, artists: [Artist]) {
+        self.letter = letter
+        self.artists = artists
+    }
 }
 
 public struct AlbumDetail: Sendable, Hashable {
