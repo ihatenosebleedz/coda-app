@@ -53,26 +53,35 @@ struct ConnectView: View {
 
     private var fields: some View {
         VStack(spacing: 14) {
-            LabeledField(title: "Server", systemImage: "server.rack", text: $serverText) {
-                .textInputAutocapitalization(.never)
-                .keyboardType(.URL)
-                .autocorrectionDisabled()
-                .textContentType(.URL)
-            }
+            LabeledField(
+                title: "Server",
+                systemImage: "server.rack",
+                text: $serverText,
+                style: .url
+            )
 
-            LabeledField(title: "Username", systemImage: "person.fill", text: $username)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .textContentType(.username)
+            LabeledField(
+                title: "Username",
+                systemImage: "person.fill",
+                text: $username,
+                style: .username
+            )
 
-            SecureLabeledField(title: "Password", systemImage: "key.fill", text: $password)
-                .textContentType(.password)
+            LabeledField(
+                title: "Password",
+                systemImage: "key.fill",
+                text: $password,
+                style: .password
+            )
 
             DisclosureGroup("Advanced") {
                 VStack(spacing: 14) {
-                    LabeledField(title: "API version", systemImage: "number", text: $apiVersion)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                    LabeledField(
+                        title: "API version",
+                        systemImage: "number",
+                        text: $apiVersion,
+                        style: .literal
+                    )
 
                     Toggle("Use token authentication", isOn: $useTokenAuth)
                         .tint(Color.naviAccent)
@@ -194,12 +203,49 @@ struct ConnectView: View {
     }
 }
 
+/// Input traits for a login field, applied to the inner text control.
+///
+/// These cannot be passed in as trailing modifiers on the wrapper: a wrapper
+/// is not a text input, so `textInputAutocapitalization` and friends are
+/// unavailable there. Keeping them in an enum also keeps them inside the
+/// control the user actually types into.
+private enum FieldStyle {
+    case literal
+    case url
+    case username
+    case password
+
+    @ViewBuilder
+    func apply(to text: String, binding: Binding<String>) -> some View {
+        switch self {
+        case .literal:
+            TextField(text, text: binding)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+        case .url:
+            TextField(text, text: binding)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.URL)
+                .autocorrectionDisabled()
+                .textContentType(.URL)
+        case .username:
+            TextField(text, text: binding)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .textContentType(.username)
+        case .password:
+            SecureField(text, text: binding)
+                .textContentType(.password)
+        }
+    }
+}
+
 /// Shared text field chrome for the login form.
 private struct LabeledField: View {
     let title: String
     let systemImage: String
     @Binding var text: String
-    @ViewBuilder var configuration: () -> some View
+    var style: FieldStyle = .literal
 
     var body: some View {
         HStack(spacing: 12) {
@@ -211,40 +257,9 @@ private struct LabeledField: View {
                 Text(title)
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.45))
-                TextField(title, text: $text)
+                style.apply(to: title, binding: $text)
                     .font(.body)
                     .foregroundStyle(.white)
-                    .configuration(configuration)
-            }
-        }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.07))
-        )
-    }
-}
-
-private struct SecureLabeledField: View {
-    let title: String
-    let systemImage: String
-    @Binding var text: String
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: systemImage)
-                .foregroundStyle(Color.naviAccent)
-                .frame(width: 22)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(title)
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.45))
-                SecureField(title, text: $text)
-                    .font(.body)
-                    .foregroundStyle(.white)
-                    .textContentType(.password)
             }
         }
         .padding(.vertical, 10)
