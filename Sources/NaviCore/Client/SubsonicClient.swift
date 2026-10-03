@@ -103,7 +103,7 @@ public struct ServerConfiguration: Sendable, Equatable, Codable {
     }
 }
 
-public enum AudioQuality: String, Sendable, Hashable, CaseIterable, Identifiable {
+public enum AudioQuality: String, Sendable, Hashable, CaseIterable, Identifiable, Codable {
     case original
     case lossless
     case high

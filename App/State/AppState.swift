@@ -78,8 +78,11 @@ final class AppState: ObservableObject {
     /// Rebuilds a client from stored credentials without showing the login screen.
     func restore() {
         guard let server = StoredServer.load() else { return }
+
+        // `try?` on an optional-returning call already flattens to a single
+        // optional, so this one binding is the whole unwrap.
         guard let password = try? Keychain.get(account: passwordAccount),
-              let password, !password.isEmpty
+              !password.isEmpty
         else { return }
 
         let configuration = ServerConfiguration(

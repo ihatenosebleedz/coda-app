@@ -91,4 +91,14 @@ final class StreamParameterTests: XCTestCase {
 
         XCTAssertEqual(transcoded.resolvedSuffix, "mp3")
     }
+
+    func testAudioQualityRoundTripsThroughCodable() throws {
+        // The app persists the selected quality in UserDefaults, which relies
+        // on AudioQuality being Codable.
+        for quality in AudioQuality.allCases {
+            let data = try JSONEncoder().encode(quality)
+            let decoded = try JSONDecoder().decode(AudioQuality.self, from: data)
+            XCTAssertEqual(decoded, quality)
+        }
+    }
 }
