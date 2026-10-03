@@ -88,18 +88,25 @@ struct GlassSurface<Content: View>: View {
         if #available(iOS 26.0, *) {
             content.glassEffect(glass, in: shape)
         } else {
-            content
-                .background(shape.fill(.ultraThinMaterial))
-                .background(
-                    shape.fill(
-                        LinearGradient(
-                            colors: [.white.opacity(0.10), .white.opacity(0.03)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+            // `shape` is an existential, so the fill/stroke styles must be
+            // spelled out as AnyShapeStyle for the generic parameters to
+            // resolve. `strokeBorder` is InsettableShape-only, so use `stroke`.
+            let material = shape.fill(AnyShapeStyle(.ultraThinMaterial))
+            let sheen = shape.fill(
+                AnyShapeStyle(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.10), Color.white.opacity(0.03)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
-                .overlay(shape.strokeBorder(.white.opacity(0.14), lineWidth: 0.8))
+            )
+            let border = shape.stroke(Color.white.opacity(0.14), lineWidth: 0.8)
+
+            return content
+                .background(material)
+                .background(sheen)
+                .overlay(border)
         }
     }
 
