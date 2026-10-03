@@ -157,6 +157,56 @@ public struct PlaybackQueue: Sendable {
         removeEntries(at: offsets)
     }
 
+    /// Removes the songs shown at the given *queue positions*.
+    ///
+    /// `removeEntries(at:)` speaks entry indices, but a queue list is rendered
+    /// in play order, so the two disagree whenever shuffle is on. This maps
+    /// display positions back to entries first.
+    public mutating func removeSongs(atQueuePositions positions: IndexSet) {
+        let entriesToRemove = positions.compactMap { position -> Int? in
+            playOrder.indices.contains(position) ? playOrder[position] : nil
+        }
+        removeEntries(at: IndexSet(entriesToRemove))
+    }
+
+    /// Moves the songs shown at the given *queue positions* to `destination`,
+    /// which is also a queue position. Reordering while shuffled rewrites the
+    /// play order rather than the entries list.
+    public mutating func moveSongs(fromQueuePositions source: IndexSet, toQueuePosition destination: Int) {
+        guard !source.isEmpty else { return }
+
+        var order = playOrder
+        let moving = source.sorted().compactMap { position -> Int? in
+            order.indices.contains(position) ? order[position] : nil
+        }
+        guard !moving.isEmpty else { return }
+
+        var remaining: [Int] = []
+        var remap: [Int: Int] = [:]
+        var next = 0
+        for (position, entry) in order.enumerated() {
+            if source.contains(position) { continue }
+            remap[entry] = next
+            next += 1
+            remaining.append(entry)
+        }
+
+        let clamped = min(max(0, destination), remaining.count)
+        remaining.insert(contentsOf: moving, at: clamped)
+
+        let remappedCurrent = resolvedEntryIndex.flatMap { remap[$0] }
+
+        // Keep `entries` in step with the new play order so both indexings agree.
+        entries = remaining.compactMap { entries.indices.contains($0) ? entries[$0] : nil }
+        playOrder = Array(entries.indices)
+
+        if let remappedCurrent, let position = playOrder.firstIndex(of: remappedCurrent) {
+            cursor = position
+        } else {
+            cursor = min(cursor ?? 0, max(0, playOrder.count - 1))
+        }
+    }
+
     public mutating func move(fromOffsets source: IndexSet, toOffset destination: Int) {
         guard !source.isEmpty else { return }
 

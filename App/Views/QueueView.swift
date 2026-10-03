@@ -143,17 +143,17 @@ struct QueueView: View {
                         .onTapGesture { play(song) }
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
-                                engine.removeSongs(withIDs: [song.id])
+                                engine.removeQueueSong(at: song.id)
                             } label: {
                                 Label("Remove", systemImage: "trash")
                             }
                         }
                 }
                 .onMove { source, destination in
-                    engine.moveQueueEntries(fromOffsets: source, toOffset: destination)
+                    engine.moveQueueSongs(fromQueuePositions: source, toQueuePosition: destination)
                 }
                 .onDelete { offsets in
-                    engine.removeQueueEntries(at: offsets)
+                    engine.removeQueueEntries(atQueuePositions: offsets)
                 }
             } header: {
                 Text("Next up · \(engine.queue.upNext.count) track\(engine.queue.upNext.count == 1 ? "" : "s")")

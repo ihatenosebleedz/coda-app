@@ -199,14 +199,14 @@ deinit {
         queue.playNext(songs)
     }
 
-    func removeQueueEntries(at offsets: IndexSet) {
-        let removingCurrent = offsets.contains(queue.positionInQueue ?? -1)
+    func removeQueueEntries(atQueuePositions positions: IndexSet) {
+        let removingCurrent = positions.contains(queue.positionInQueue ?? -1)
         let removedCurrentSong = queue.currentSong
         // Capture before the cursor moves; the replacement still needs to know
         // whether it should start playing or stay paused.
         let wasPlaying = isPlaying
 
-        queue.removeEntries(at: offsets)
+        queue.removeSongs(atQueuePositions: positions)
 
         // The cursor shifted under us, so the loaded item no longer matches the
         // queue. If we pulled out the playing track, move to the new occupant.
@@ -221,9 +221,16 @@ deinit {
         }
     }
 
-    func moveQueueEntries(fromOffsets source: IndexSet, toOffset destination: Int) {
+    /// Removes one song from the queue, addressing it by ID because the queue
+    /// list is rendered in play order.
+    func removeQueueSong(at songID: String) {
+        guard let position = queue.queuePosition(forSongID: songID) else { return }
+        removeQueueEntries(atQueuePositions: IndexSet(integer: position))
+    }
+
+    func moveQueueSongs(fromQueuePositions source: IndexSet, toQueuePosition destination: Int) {
         let currentID = queue.currentSong?.id
-        queue.move(fromOffsets: source, toOffset: destination)
+        queue.moveSongs(fromQueuePositions: source, toQueuePosition: destination)
 
         if let currentID, let index = queue.queuePosition(forSongID: currentID),
            let song = queue.song(atQueuePosition: index), song.id != currentSong?.id

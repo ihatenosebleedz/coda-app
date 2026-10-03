@@ -95,4 +95,39 @@ struct QueueAccessorTests {
         queue.move(fromOffsets: IndexSet([0]), toOffset: 2)
         #expect(queue.orderedEntries.map(\.id) == ["s2", "s4", "s0"])
     }
+
+    @Test("position-based removal deletes the song the list showed")
+    func removeSongsAtQueuePositions() {
+        var queue = PlaybackQueue()
+        let list = songs(5)
+        queue.setEntries(list, preservingCurrent: false)
+        queue.setShuffled(true)
+
+        // Pick a position from the shuffled play order and remove by position.
+        let target = queue.song(atQueuePosition: 2)
+        #expect(target != nil)
+        queue.removeSongs(atQueuePositions: IndexSet(integer: 2))
+
+        #expect(queue.orderedEntries.map(\.id).contains(target!.id) == false)
+        #expect(queue.orderedEntries.count == 4)
+    }
+
+    @Test("position-based move reorders play order and keeps songs locatable")
+    func moveSongsAtQueuePositions() {
+        var queue = PlaybackQueue()
+        queue.setEntries(songs(5), preservingCurrent: false)
+        queue.setShuffled(true)
+
+        let before = queue.orderedEntries.map(\.id)
+        let moved = before[0]
+        queue.moveSongs(fromQueuePositions: IndexSet(integer: 0), toQueuePosition: 3)
+
+        let after = queue.orderedEntries.map(\.id)
+        #expect(after.count == 5)
+        // The moved song is now displayed at the requested position.
+        #expect(queue.queuePosition(forSongID: moved) == 3)
+        #expect(after[3] == moved)
+        // Nothing was lost or duplicated.
+        #expect(Set(after) == Set(before))
+    }
 }
